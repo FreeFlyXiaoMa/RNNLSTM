@@ -41,7 +41,14 @@ model.add(Dropout(DROPOUT))
 model.add(Dense(N_HIDDEN))
 model.add(Activation('relu'))
 model.add(Dropout(DROPOUT))
-
+model.add(Dense(NB_CLASSES))
+model.add(Activation('softmax'))
+model.summary()
+model.compile(loss='categorical_entropy',optimizer=OPTIMIZER,metrics=['accuracy'])
+history=model.fit(X_train,y_train,batch_size=BATCH_SIZE,epochs=NB_EPOCH,verbose=VERBOSE,validation_split=VALIDATION_SPLIT)
+score=model.evaluate(X_test,y_test,verbose=VERBOSE)
+print('Test Score:',score[0])
+print('Test Accuracy:',score[1])
 
 
 
