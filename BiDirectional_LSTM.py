@@ -120,6 +120,168 @@ x,c,s1,s2=x_in,c_in,s1_in,s2_in
 x_mask=Lambda(lambda x:K.cast(K.greater(K.expand_dims(x,2),0),'float32'))(x)
 
 x=Embedding(len(id2char)+2,char_size)(x)
+c=Embedding(len(class2id),char_size)(c)
+c=Lambda(lambda x:x[0]*0+x[1])([x,c])
+
+x=Add()([x,c])  #x与c的拼接
+x=Dropout(0.2)(x)
+x=Lambda(lambda x:x[0]*x[1])([x,x_mask])
+
+x=Bidirectional(CuDNNLSTM(char_size//2,return_sequences=True))(x)
+x=Lambda(lambda x:x[0]*x[1])([x,x_mask])
+x=Bidirectional(CuDNNLSTM(char_size//2,return_sequences=True))(x)
+x=Lambda(lambda x:x[0]*x[1])([x,x_mask])
 
 
+class Attention(Layer):
+    """多头注意力机制
+    """
+    def __init__(self,nb_head,size_per_head,**kwargs):
+        self.nb_head=nb_head
+        self.size_per_head=size_per_head
+        self.out_dim=nb_head*size_per_head
+        super(Attention,self).__init__(**kwargs)
+    def build(self, input_shape):
+        q_in_dim=input_shape[0][-1]
+        k_in_dim=input_shape[1][-1]
+        v_in_dim=input_shape[2][-1]
+        self.q_kernel=self.add_weight(name='q_kernel',
+                                      shape=(q_in_dim,self.out_dim),
+                                      initializer='glorot_normal')
 
+        self.k_kernel=self.add_weight(name='k_kernel',
+                                      shape=(k_in_dim,self.out_dim),
+                                      initializer='glorot_normal'
+                                      )
+        self.v_kernel=self.add_weight(name='w_kernel',
+                                      shape=(v_in_dim,self.out_dim),
+                                      initializer='glorot_normal'
+                                      )
+        def mask(self,x,mask,mode='mul'):
+            if mask is None:
+                return x
+            else:
+                for _ in range(K.ndim(x)-K.ndim(mask)):
+                    mask=K.expand_dims(mask,K.ndim(mask))
+                if mode=='mul':
+                    return x*mask
+                else:
+                    return x-(1-mask)*1e10
+        def call(self, inputs):
+            q,k,v=inputs[:3]
+            v_mask,q_mask=None,None
+            if len(inputs) >3:
+                v_mask=inputs[3]
+                if len(inputs) >4:
+                    q_mask=inputs[4]
+            #线性变化
+            qw=K.dot(q,self.q_kernel)
+            kw=K.dot(k,self.q_kernel)
+            vw=K.dot(v,self.v_kernel)
+            #形状变换
+            qw=K.reshape(qw,(-1,K.shape(qw)[1],self.nb_head,self.size_per_head))
+            kw=K.reshape(kw,(-1,K.shape(kw)[1],self.nb_head,self.size_per_head))
+            vw=K.reshape(vw,(-1,K.shape(vw)[1],self.nb_head,self.size_per_head))
+            #维度置换
+            qw=K.permute_dimensions(qw,(0,2,1,3))
+            kw=K.permute_dimensions(kw,(0,2,1,3))
+            vw=K.permute_dimensions(vw,(0,2,1,3))
+            #Attention
+            a=K.batch_dot(qw,kw,[3,3])/self.size_per_head**0.5
+            a=K.permute_dimensions(a,(0,3,2,1))
+            a=self.mask(a,v_mask,'add')
+            a=K.permute_dimensions(a,(0,3,2,1))
+            a=K.softmax(a)
+            #完成输出
+            o=K.batch_dot(a,vw,[3,2])
+            o=K.permute_dimensions(o,(0,2,1,3))
+            o=K.reshape(o,(-1,K.shape(o)[1],self.out_dim))
+            o=self.mask(o,q_mask,'mul')
+            return o
+        def compute_output_shape(self, input_shape):
+            return (input_shape[0][0],input_shape[0][1],self.out_dim)
+
+xo=x
+x=Attention(8,16)([x,x,x,x_mask,x_mask])
+x=Lambda(lambda x:x[0]+x[1])([xo,x])
+
+x=Concatenate()([x,c])
+
+#隐层
+x1=Dense(char_size,use_bias=False,activation='tanh')(x)
+ps1=Dense(1,use_bias=False)(x1)
+ps1=Lambda(lambda x:x[0][...,0]-(1-x[1][...,0])*1e10)([ps1,x_mask])
+
+#隐层
+x2=Dense(char_size,use_bias=False,activation='tanh')(x)
+ps2=Dense(1,use_bias=False)(x2)
+ps2=Lambda(lambda x:x[0][...,0]-(1-x[1][...,0])*1e10)([ps2,x_mask])
+
+#Keras 训练得到的模型
+model=Model([x_in,c_in],[ps1,ps2])
+
+train_model=Model([x_in,c_in,s1_in,s2_in],[ps1,ps2])
+
+loss1=K.mean(K.categorical_crossentropy(s1_in,ps1,from_logits=True))
+loss2=K.mean(K.categorical_crossentropy(s2_in,ps2,from_logits=True))
+loss=loss1+loss2
+
+train_model.add_loss(loss)
+#
+train_model.compile(optimizer=Adam())
+train_model.summary()
+
+"""
+解码函数，应自行添加更多规则，保证解码出来的是一个公司名
+"""
+def extract_entity(text_in,c_in):
+    if c_in not in class2id:
+        return 'NaN'
+    _x=[char2id.get(c,1) for c in text_in]
+    _x=np.array([_x])
+    _c=np.array([[class2id[c_in]]])
+    _ps1,_ps2=model.predict([_x,_c])
+    start=_ps1[0].argmax()
+    end=_ps2[0][start:].argmax()+start
+    return text_in[start:end+1]
+
+#评价指标
+class Evaluate(Callback):
+    def __init__(self):
+        self.ACC=[]
+        self.best=0.
+    def on_epoch_end(self, epoch, logs=None):
+        acc=self.evaluate()
+        self.ACC.append(acc)
+        if acc >self.best:
+            self.best=acc
+            train_model.save_weights('best_model.weights')
+        print('acc:%.4f,best acc:%.4f\n'%(acc,self.best))
+    def evaluate(self):
+        A=1e-10
+        for d in tqdm(iter(dev_data)):
+            R=extract_entity(d[0],d[1])
+            if R==d[2]:
+                A+=1
+        return A/len(dev_data)  #准确率
+
+#生成关键字提取结果
+def test(test_data):
+    F=open('result.txt','wb')
+    for d in tqdm(iter(test_data)):
+        s=u'"%s","%s"\n'%(d[0],extract_entity(d[1].replace('\t',''),d[2]))
+        s=s.encode('utf-8')
+        F.write(s)
+    F.close()
+
+#
+evaluator=Evaluate() #模型评估--准确率
+train_D=data_generator(train_data)
+
+train_model.fit_generator(train_D.__iter__(),
+                          steps_per_epoch=len(train_D),
+                          epochs=80,
+                          callbacks=[evaluator]
+                          )
+
+test_data(test_data)

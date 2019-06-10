@@ -26,7 +26,7 @@ data_download(zip_file)
 '''extracting the dataset in separate folder'''
 extracted_folder='dataset'
 if not os.path.isdir(extracted_folder):
-    with zipfile.ZipFile(zip_file) as zf:
+    with zipfile.ZipFile(zip_file,mode='r') as zf:
         zf.extractall(extracted_folder)
 with open('dataset/text8') as ft_:
     full_text=ft_.read()
@@ -48,6 +48,10 @@ def text_processing(ft8_text):
     return ft8_text_tokens
 ft_tokens=text_processing(full_text)
 
+'''shortlisting words with frequency more than 7'''
+word_cnt=collections.Counter(ft_tokens)
+shortlisted_words=[w for w in ft_tokens if word_cnt[w]>7]
 
-
+#列出数据集中词频最高的几个单词，如下所示
+print(shortlisted_words[:15])
 
