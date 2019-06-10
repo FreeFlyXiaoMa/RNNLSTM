@@ -17,7 +17,7 @@ zip_file='text8.zip'
 def data_download(zip_file):
     '''download the required file'''
     if not os.path.exists(zip_file):
-        zip_file,_=urlretrieve(dataset_link+zip_file,zip_file)
+        zip_file,_=urlretrieve(dataset_link+zip_file,filename=zip_file)
         print('file downloaded successfully!')
     return None
 

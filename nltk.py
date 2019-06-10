@@ -18,7 +18,7 @@ import keras
 from keras.layers import Dense
 from keras.models import Sequential
 import numpy as np
-'''
+
 tran_=np.genfromtxt('transfusion.csv',delimiter=',')
 X=tran_[:,0:4]
 y=tran_[:,4]
@@ -33,7 +33,7 @@ mlp_keras.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy
 mlp_keras.fit(X,y,nb_epoch=20,batch_size=8,verbose=0)
 
 accuracy=mlp_keras.evaluate(X,y)
-print('accuracy=%.2f%%'%(accuracy[1]*100))'''
+print('accuracy=%.2f%%'%(accuracy[1]*100))
 
 
 
