@@ -55,8 +55,19 @@ shortlisted_words=[w for w in ft_tokens if word_cnt[w]>7]
 #列出数据集中词频最高的几个单词，如下所示
 print(shortlisted_words[:15])
 
+#检查数据集中所有单词的统计信息
+print("Totalnumber of shorted listed words:",len(shortlisted_words))
+print("Unique number of shortlisted words:",len(set(shortlisted_words)))
 
-
-
-
+"""
+The function creates a dictionary of words present in dataset 
+alonog with their frequency order
+"""
+def dict_creation(shortlisted_words):
+    counts=collections.Counter(shortlisted_words)
+    vocabulary=sorted(counts,key=counts.get,reverse=True)
+    rev_dictionary={ii:word for ii,word in enumerate(vocabulary)}
+    dictionary_={word:ii for ii,word in rev_dictionary.items()}
+    return dictionary_,rev_dictionary
+words_cnt=[dict_creation(word) for word in shortlisted_words]
 
