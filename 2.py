@@ -1,6 +1,9 @@
-str1 = "I Love Python aaaaaaaaaaaaa"
-str2 = "Groß - α" #德语 大写α
+m=[[1,2,3],[4,5,6],[7,8,9]]
 
-print(str1.upper())
+n=[[1,1,1],[2,2,3],[3,3,3]]
 
-print(str2.upper())
+p=[[1,1,1],[2,2,2]]
+
+#print(list(zip(m,p)))
+value=[x*y for a,b in zip(m,n) for x,y in zip(a,b)]
+print(value)

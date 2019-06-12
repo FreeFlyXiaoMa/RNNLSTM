@@ -55,3 +55,7 @@ shortlisted_words=[w for w in ft_tokens if word_cnt[w]>7]
 #列出数据集中词频最高的几个单词，如下所示
 print(shortlisted_words[:15])
 
+
+
+
+
