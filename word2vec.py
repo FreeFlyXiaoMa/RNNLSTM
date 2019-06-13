@@ -70,4 +70,19 @@ def dict_creation(shortlisted_words):
     dictionary_={word:ii for ii,word in rev_dictionary.items()}
     return dictionary_,rev_dictionary
 words_cnt=[dict_creation(word) for word in shortlisted_words]
+"""
+creating the threshold and performing the subsampling
+"""
+thresh=0.00005
+word_counts=collections.Counter(words_cnt)
+total_count=len(words_cnt)
+freqs={word:count/total_count for word,count in word_counts.items()}
+p_drop={word:1-np.sqrt(thresh/freqs[word]) for word in word_counts}
+train_words=[word for word in words_cnt if p_drop[word] < random.random()]
+
+
+
+
+
+
 
