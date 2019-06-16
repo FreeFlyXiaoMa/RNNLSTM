@@ -24,6 +24,12 @@ print('取整，舍去小数部分：',math.trunc(2.3))
 print('大于或等于x的整数：',math.ceil(3.4))
 print('四舍五入：',round(3.5))
 
+import re
+m=re.search('(?<=abc)def','abcdef')
+print(m.group(0))
+
+m=re.search('(?<=-)\w+','spam-egg') #匹配从-开始的任意数字、字母及下划线
+print(m.group(0))
 
 
 
