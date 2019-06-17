@@ -76,3 +76,26 @@ for i in my_generator:
 for i in my_list:
     print(i)
 
+import numpy
+import math
+re=2*(pow(16,6))+(15*(pow(16,5))+15*(pow(16,4))+15*(pow(16,3))+15*(pow(16,2))+15*(pow(16,1))+15)*2
+print('最终结果：',re)
+s1=re/1024  #K
+s2=s1/1024  #M
+print(s2)
+
+
+# 二进制的转换
+def Dec2Bin(dec):
+    result = ''
+
+    if dec:
+        result = Dec2Bin(dec // 2)
+        return result + str(dec % 2)
+    else:
+        return result
+
+bit=Dec2Bin(re)
+print(bit)
+
+
