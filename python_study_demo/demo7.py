@@ -37,6 +37,7 @@ class Child(Parent):
         print('this is a child init.')
     def sleep(self):
         print('child sleeps')
+
 c=Child()
 c.__iter__()
 c.sleep()
