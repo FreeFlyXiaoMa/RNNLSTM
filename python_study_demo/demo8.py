@@ -73,6 +73,79 @@ if __name__=='__main__':
     for i in tickets:
         print(i)
 
+print('*'*20)
+
+tickets=[
+    ['2018-4-7 8:00','北京','沈阳',10,120],
+    ['2018-4-7 9:00','上海','宁波',5,100],
+    ['2018-4-7 12:00','天津','北京',20,55],
+    ['2018-4-7 14:00','广州','武汉',0,200],
+    ['2018-4-7 16:00','重庆','西安',3,180],
+    ['2018-4-7 18:00','深圳','上海',49,780],
+    ['2018-4-7 18:10','武汉','长沙',10,210],
+
+    ['2018-4-7 8:00','北京','沈阳',10,120],
+    ['2018-4-7 9:00','上海','宁波',5,100],
+    ['2018-4-7 12:00','天津','北京',20,55],
+    ['2018-4-7 14:00','广州','武汉',0,200],
+    ['2018-4-7 16:00','重庆','西安',3,180],
+    ['2018-4-7 18:00','深圳','上海',49,780],
+    ['2018-4-7 18:10','武汉','长沙',10,210],
+
+    ['2018-4-7 8:00','北京','沈阳',10,120],
+    ['2018-4-7 9:00','上海','宁波',5,100],
+    ['2018-4-7 12:00','天津','北京',20,55],
+    ['2018-4-7 14:00','广州','武汉',0,200],
+    ['2018-4-7 16:00','重庆','西安',3,180],
+    ['2018-4-7 18:00','深圳','上海',49,780],
+    ['2018-4-7 18:10','武汉','长沙',10,210]
+]
+
+def update_price(start_station,nums):
+    j=0
+    while j<len(tickets):
+        tickets[j][3]+=nums
+        j+=1
+
+def buy_ticket(name,nums,data1,start_station):
+    i=0
+    for get_ticket in tickets:
+        if get_ticket[0]==data1 and get_ticket[1]==start_station:
+            if get_ticket[3] >= nums:
+                tickets[i][3]=get_ticket[3]-nums
+                print('%s购买%d张票成功'%(name,nums))
+                return
+            else:
+                print('%s现存票数量不够，无法购买！'%(name))
+                return -1
+        i+=1
+    print('今日无票，无法购买！')
+    return -1
+
+class MThread(threading.Thread):
+    def __init__(self,target,args):
+        self.target=target
+        self.args=args
+
+    def run(self):
+        self.target(*self.args)
+
+if __name__=='__main__':
+    class_do_list=[]
+    print('开始时间：',datetime.now())
+    get_one=MThread(target=update_price,args=('上海',5))
+    class_do_list.append(get_one)
+    for get_I in range(500):
+        MThread(target=buy_ticket,args=(get_I,2,'2018-4-7 9:00 ','上海 '))
+
+
+
+
+
+
+
+
+
 
 
 
