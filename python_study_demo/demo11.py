@@ -24,7 +24,8 @@ class MyThread(threading.Thread):
         while self.data.qsize()>0:
             self.func(self.data.get(),self.j)
 
-from multiprocessing import Process
+from multiprocessing import Process,Pipe
+import multiprocessing
 from datetime import datetime
 def do1(j):
     print('第%d个进程！'%(j))
@@ -37,17 +38,34 @@ class MyProcess(Process):
     def run(self):
         self.target(self.args)
 
+def do_send(conn_s,j):
+    dic={
+        '发送序号':j,
+        '鲫鱼':[18,10.5],
+        '鲤鱼':[8,7,2]
+    }
+    conn_s.send(dic)
+    conn_s.close()
 
 if __name__=='__main__':
-    for data in range(do_thread_num*2):
+    """for data in range(do_thread_num*2):
         q_data.put(data)
         for j in range(do_thread_num):
             t1=MyThread(getOne,q_data,j).start()
-
+    pool=multiprocessing.Pool()
     print('开始时间：',datetime.now())
-    for i in range(10):
-        p1=MyProcess(target=do1,args=(i,))
-        p1.start()
-        p1.join()
 
-    print('结束时间：',datetime.now())
+    for i in range(10):
+        pool.apply_async(do1,(i,))
+        pool.close()
+        pool.join()
+    print('结束时间：',datetime.now())"""
+
+    receive_conn,send_conn=Pipe()
+    i=0
+    while i<2:
+        i+=1
+        pp=Process(target=do_send,args=(send_conn,i))
+        pp.start()
+        print('接收数据%s成功！'%(receive_conn.recv()))
+        pp.join()
