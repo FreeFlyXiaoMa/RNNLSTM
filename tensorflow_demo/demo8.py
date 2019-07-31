@@ -111,8 +111,8 @@ def train_and_eval():
     df_test.dropna(how='any',axis=0,inplace=True)
 
     #convert >50 to 1
-    df_train[LABEL_COLUMN]=(df_train['income_bracket'].apply(lambda x:">50" in x).astype(int))
-    df_test[LABEL_COLUMN]=(df_test['income_bracket'].apply(lambda x:">50" in x).astype(int))
+    df_train[LABEL_COLUMN]=(df_train['income_bracket'].apply(lambda x:">50k" in x).astype(int))
+    df_test[LABEL_COLUMN]=(df_test['income_bracket'].apply(lambda x:">50k" in x).astype(int))
 
     model_dir=tempfile.mkdtemp() if not FLAGS.model_type else FLAGS.model_dir #创建临时目录，目录需要手动删除
     print('model dir=%s'%model_dir)
