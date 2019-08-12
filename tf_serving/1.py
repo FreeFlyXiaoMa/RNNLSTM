@@ -10,4 +10,4 @@ a=10
 #     print('global_test:a=%d'%(a))
 # global_test()
 # print('a==',a)
-ListNode()
+# ListNode()
