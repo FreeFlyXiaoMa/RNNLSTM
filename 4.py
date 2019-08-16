@@ -2,9 +2,8 @@ import pandas as pd
 import numpy as np
 from pandas import DataFrame
 
-def ss(s):
-    
+x={'a','b','c'}
+y={'a','d','e'}
+print(x.difference(y))
 
-    print(' '.join(s.split()[::-1]))
-s="the sky is   blue"
-ss(s)
+
