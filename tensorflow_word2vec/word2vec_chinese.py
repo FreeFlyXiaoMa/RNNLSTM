@@ -73,7 +73,7 @@ data,count,dictionary,reverse_dictionary=build_dataset(words)
 
 #删除words节省内存
 del words
-print('most common words (+UNK)',count[:5])
+print('most neural words (+UNK)',count[:5])
 print('sample data',data[:10],[reverse_dictionary[i] for i in data[:10]])
 
 data_index=0

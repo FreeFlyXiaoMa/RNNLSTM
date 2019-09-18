@@ -158,6 +158,7 @@ def build_estimator(model_dir, model_type):
         hidden_units=hidden_units,
         config=run_config)
   else:
+      # tf.estimator.LinearRegressor
     return tf.estimator.DNNLinearCombinedClassifier(
         model_dir=model_dir,
         linear_feature_columns=wide_columns,
@@ -194,6 +195,7 @@ def input_fn(data_file, num_epochs, shuffle, batch_size):
 
   iterator = dataset.make_one_shot_iterator()
   features, labels = iterator.get_next()
+
   return features, labels
 
 
